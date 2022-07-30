@@ -1,5 +1,6 @@
 from lb.models import Submission, User
 from random import randint
+import math
 import functools
 
 def get_leaderboard():
@@ -81,6 +82,54 @@ def judge(content: str):
     #  If `content` is invalid, raise an Exception so that it can be
     #  captured in the view function.
     #  You can define the calculation of main score arbitrarily.
-
-    subs = [randint(0, 100) for _ in range(3)]
-    return sum(subs), subs
+    def interpolate(x1: float, x2: float, y1: float, y2: float, x: float):
+        if x < x1:
+            return y1
+        if x > x2:
+            return y2
+        return math.sqrt((x-x1) / (x2-x1)) * (y2-y1) + y1
+    
+    def main_score(result: list):
+        mean_result = sum(result) / 3
+        return round(114 * interpolate(0.5, 0.8, 0, 1, mean_result) +
+                     514 * interpolate(0.5, 0.7, 0, 1, result[0]) +
+                     1919 * interpolate(0.5, 0.9, 0, 1, result[1]) +
+                     810 * interpolate(0.5, 0.75, 0, 1, result[2])
+                    ) #池沼分数计算法则（喜）
+        
+    with open("./ground_truth.txt", "r") as f:
+        ans = [['1' if x == "True" else '0' for x in l.split(",")[1:]] for l in f.read().split()[1:]]
+    '''
+    ans = []
+    with open("./ground_truth.txt", "r") as f:
+        for contents in f.read().split()[1:]:
+            temp = []
+            for res in contents.split(",")[1:]:
+                temp.append(res == "True")
+            
+            ans.append(temp)
+            引以为戒，以后多写列表生成式
+    '''
+    submits = [temp.split(",") for temp in content.split()]
+    '''
+    submits=[]
+    for line in content.split():
+        temp=[]
+        for x in line.split(","):
+            temp.append(x)
+            
+        submits.append(temp)
+        引以为戒，以后多写列表生成式
+    '''
+    if len(ans) != len(submits):
+        raise RuntimeError("你是一个，一个一个错误提交啊啊啊啊啊啊")
+    
+    total = len(ans)
+    
+    try:
+        subs = [sum([ans[i][j] == submits[i][j] for i in range(total)]) / total for j in range(3)]
+    except:
+        raise RuntimeError("你又是一个，一个一个池沼提交啊啊啊啊啊啊")
+    
+    subs_new = [x * 100 for x in subs]
+    return main_score(subs), subs_new
