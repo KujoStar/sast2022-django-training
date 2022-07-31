@@ -60,7 +60,7 @@ def get_leaderboard():
         {
             "user": obj.user.username,
             "score": obj.score,
-            "subs": [int(x) for x in obj.subs.split()],
+            "subs": [int(x) for x in obj.subs],
             "avatar": obj.avatar,
             "time": obj.time,
             "votes": obj.user.votes

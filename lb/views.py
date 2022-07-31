@@ -85,9 +85,11 @@ def submit(req: HttpRequest):
             "msg": "牡蛎冇牡蛎（提交内容非法的声音）"
         })  
     
-    current_user = User.objects.filter(username = infomation["user"]).first()
-    if not current_user:
-        User.objects.create(username = infomation["user"])
+    #current_user = User.objects.filter(username = infomation["user"]).first()
+    if User.objects.filter(username = infomation["user"]).count() == 0:
+        current_user = User.objects.create(username = infomation["user"])
+    else:
+        current_user = User.objects.filter(username = infomation["user"]).first()
     
     Submission.objects.create(user = current_user, avatar = infomation["avatar"], time = time.time(), score = main_score, subs = sub_score)
     return JsonResponse({
